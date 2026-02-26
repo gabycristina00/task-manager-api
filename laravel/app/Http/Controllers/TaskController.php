@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
@@ -31,13 +32,17 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $this->authorize('view', $task);
+        if (Auth::id() !== $task->user_id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
         return response()->json($task);
     }
 
     public function update(Request $request, Task $task)
     {
-        $this->authorize('update', $task);
+        if (Auth::id() !== $task->user_id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
 
         $validated = $request->validate([
             'title'       => 'sometimes|string|max:255',
@@ -54,7 +59,9 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        $this->authorize('delete', $task);
+        if (Auth::id() !== $task->user_id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
         $task->delete();
         return response()->json(null, 204);
     }
